@@ -457,13 +457,4 @@ def handle_stop_stream():
 if __name__ == '__main__':
     os.makedirs('uploads', exist_ok=True)
     print("🌾 Starting Singaji Setu Agent with Live Streaming")
-    
-    # Get port from environment (Railway/Heroku) or default to 5000
-    port = int(os.environ.get('PORT', 5000))
-    
-    socketio.run(app, 
-                debug=False, 
-                host='0.0.0.0', 
-                port=port, 
-                use_reloader=False, 
-                allow_unsafe_werkzeug=True)
+    socketio.run(app, debug=False, host='0.0.0.0', port=5000, use_reloader=False, allow_unsafe_werkzeug=True)
