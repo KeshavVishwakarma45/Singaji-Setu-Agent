@@ -1,5 +1,5 @@
-import eventlet
-eventlet.monkey_patch()
+# import eventlet
+# eventlet.monkey_patch()
 
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
@@ -31,7 +31,7 @@ app.config['SECRET_KEY'] = 'singaji-setu-secret'
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, 
     cors_allowed_origins="*", 
-    async_mode='threading', 
+    async_mode='eventlet', 
     logger=False, 
     engineio_logger=False,
     ping_timeout=60,
