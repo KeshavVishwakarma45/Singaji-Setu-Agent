@@ -624,6 +624,7 @@ Language: Hindi (hi-IN)
 if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     port = int(os.environ.get("PORT", 8080))
+    print(f"Environment PORT: {os.environ.get('PORT', 'Not set')}")
     print(f"Starting Singaji Setu Agent Backend on port {port}...")
     init_services()
-    socketio.run(app, host="0.0.0.0", port=port, debug=False, allow_unsafe_werkzeug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
