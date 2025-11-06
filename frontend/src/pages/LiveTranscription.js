@@ -14,7 +14,6 @@ const LiveTranscription = ({ updateSessionData }) => {
   const socketRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
-  const recognitionRef = useRef(null);
 
   useEffect(() => {
     // Create socket connection only once
@@ -100,7 +99,7 @@ const LiveTranscription = ({ updateSessionData }) => {
       // Don't disconnect on unmount, keep connection alive
       console.log('Component unmounting, keeping socket alive');
     };
-  }, []);
+  }, [navigate, updateSessionData]);
 
   const startRecording = async () => {
     try {
