@@ -17,7 +17,7 @@ class GeminiService:
 
     def _initialize_llm(self) -> Optional[ChatGoogleGenerativeAI]:
         if not os.getenv("GEMINI_API_KEY"):
-            print("❌ Gemini API key not found. Please set it in your .env file.")
+            print("ERROR: Gemini API key not found. Please set it in your .env file.")
             return None
         try:
             return ChatGoogleGenerativeAI(model=GEMINI_MODEL, temperature=0.1)
@@ -32,7 +32,7 @@ class GeminiService:
         if not self.llm:
             return None
         try:
-            print("🧠 Gemini is analyzing the interview to generate the JSON payload...")
+            print("Gemini is analyzing the interview to generate the JSON payload...")
             # Define a dynamic Pydantic model for the parser
             class DynamicSchema(BaseModel):
                 payload: Dict[str, Any] = Field(
@@ -76,7 +76,7 @@ class GeminiService:
             chain = prompt | self.llm | parser
             response = chain.invoke({"schema": schema, "transcript": transcript})
 
-            print("✅ Gemini has successfully generated the JSON payload!")
+            print("Gemini has successfully generated the JSON payload!")
             # The parser wraps the result in a 'payload' key, so we extract it.
             return response.get("payload", {})
         except Exception as e:

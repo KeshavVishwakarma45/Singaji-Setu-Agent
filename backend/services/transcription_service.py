@@ -26,7 +26,7 @@ class TranscriptionService:
         self.location = gcp_location
 
         if not self.creds_path:
-            print("❌ Google Cloud credentials not set.")
+            print("ERROR: Google Cloud credentials not set.")
             self.speech_client = None
             self.storage_client = None
             return
@@ -39,7 +39,7 @@ class TranscriptionService:
             self.storage_client = storage.Client()
             self._ensure_bucket_exists()
         except Exception as e:
-            print(f"❌ Failed to initialize clients: {e}")
+            print(f"ERROR: Failed to initialize clients: {e}")
             self.speech_client = None
             self.storage_client = None
 
@@ -48,13 +48,13 @@ class TranscriptionService:
         try:
             bucket = self.storage_client.bucket(self.gcs_bucket_name)
             if not bucket.exists():
-                print(f"🪣 Creating GCS bucket: {self.gcs_bucket_name}")
+                print(f"Creating GCS bucket: {self.gcs_bucket_name}")
                 bucket = self.storage_client.create_bucket(
                     self.gcs_bucket_name, location=self.location
                 )
-                print(f"✅ Created GCS bucket: {self.gcs_bucket_name}")
+                print(f"Created GCS bucket: {self.gcs_bucket_name}")
         except Exception as e:
-            print(f"⚠️ Could not verify/create GCS bucket: {e}")
+            print(f"WARNING: Could not verify/create GCS bucket: {e}")
             print("You may need to create the bucket manually or check permissions.")
 
     def _upload_to_gcs(self, audio_bytes: BytesIO, destination_blob_name: str) -> str:
@@ -75,7 +75,7 @@ class TranscriptionService:
             # Check file size and warn if large
             file_size_mb = len(content) / (1024 * 1024)
             if file_size_mb > 50:
-                print(f"⚠️ Large file: {file_size_mb:.1f}MB - this may take time to upload")
+                print(f"WARNING: Large file: {file_size_mb:.1f}MB - this may take time to upload")
             
             audio_bytes.seek(0)  # Reset for upload
             
@@ -89,13 +89,13 @@ class TranscriptionService:
                 timeout=300  # 5 minutes timeout
             )
             
-            print(f"✅ Uploaded {file_size_mb:.1f}MB to GCS")
+            print(f"Uploaded {file_size_mb:.1f}MB to GCS")
             return f"gs://{self.gcs_bucket_name}/{destination_blob_name}"
             
         except Exception as e:
             if "timeout" in str(e).lower():
-                print(f"⏰ Upload timeout - file too large ({file_size_mb:.1f}MB)")
-                print("💡 Try using a shorter audio file or better internet connection")
+                print(f"Upload timeout - file too large ({file_size_mb:.1f}MB)")
+                print("Try using a shorter audio file or better internet connection")
             else:
                 print(f"GCS Upload Failed: {e}")
             raise
@@ -170,7 +170,7 @@ class TranscriptionService:
             total_time = time.time() - start_time
             final_transcript = " ".join(full_transcript_parts)
 
-            print(f"✅ Transcription complete in {total_time:.2f} seconds!")
+            print(f"Transcription complete in {total_time:.2f} seconds!")
             return final_transcript
 
         except Exception as e:
@@ -199,7 +199,7 @@ class TranscriptionService:
                 source = BytesIO(uploaded_file)
                 audio_data, original_sample_rate = sf.read(source)
             
-            print(f"📊 Original: {len(audio_data)} samples at {original_sample_rate}Hz")
+            print(f"Original: {len(audio_data)} samples at {original_sample_rate}Hz")
             
             # Convert to mono if stereo
             if len(audio_data.shape) > 1:
@@ -216,13 +216,13 @@ class TranscriptionService:
                     # Use scipy for proper resampling
                     num_samples = int(len(audio_data) * target_sample_rate / original_sample_rate)
                     audio_data = signal.resample(audio_data, num_samples)
-                    print(f"🔄 Resampled: {original_sample_rate}Hz → {target_sample_rate}Hz (SciPy)")
+                    print(f"Resampled: {original_sample_rate}Hz -> {target_sample_rate}Hz (SciPy)")
                 except ImportError:
                     # Fallback: keep original rate to avoid data loss
                     target_sample_rate = original_sample_rate
-                    print(f"📊 Keeping original sample rate: {original_sample_rate}Hz (no SciPy)")
+                    print(f"Keeping original sample rate: {original_sample_rate}Hz (no SciPy)")
             else:
-                print(f"📊 Using original sample rate: {original_sample_rate}Hz (optimal)")
+                print(f"Using original sample rate: {original_sample_rate}Hz (optimal)")
             
             # Normalize audio levels for better transcription
             audio_data = audio_data / np.max(np.abs(audio_data)) * 0.8
@@ -233,20 +233,20 @@ class TranscriptionService:
             # Calculate duration
             duration_seconds = len(audio_data) / target_sample_rate
             
-            print(f"🕰️ Audio duration: {duration_seconds:.1f} seconds")
-            print(f"📊 Audio samples: {len(audio_data):,} at {target_sample_rate}Hz")
+            print(f"Audio duration: {duration_seconds:.1f} seconds")
+            print(f"Audio samples: {len(audio_data):,} at {target_sample_rate}Hz")
             
             # Validate audio quality
             if duration_seconds < 10:
-                print("⚠️ Very short audio detected. Check if file uploaded correctly.")
+                print("WARNING: Very short audio detected. Check if file uploaded correctly.")
             elif duration_seconds > 3600:  # More than 1 hour
-                print("⚠️ Very long audio (>1 hour). Processing may take significant time.")
+                print("WARNING: Very long audio (>1 hour). Processing may take significant time.")
             else:
-                print(f"✅ Audio duration looks good: {duration_seconds/60:.1f} minutes")
+                print(f"Audio duration looks good: {duration_seconds/60:.1f} minutes")
             
             # If audio is longer than 3 minutes, use chunking (reduced threshold)
             if duration_seconds > 180:  # 3 minutes
-                print("🔄 Large file detected - using chunking approach")
+                print("Large file detected - using chunking approach")
                 return self._transcribe_large_file_chunked(audio_data, target_sample_rate, language_code)
             
             # For smaller files, process normally but with timeout handling
@@ -283,7 +283,7 @@ class TranscriptionService:
             
             audio = speech.RecognitionAudio(uri=gcs_uri)
             
-            print("🤖 Transcribing audio with timestamps...")
+            print("Transcribing audio with timestamps...")
             operation = self.speech_client.long_running_recognize(config=config, audio=audio)
             response = operation.result()
             
@@ -312,7 +312,7 @@ class TranscriptionService:
                 self.word_timestamps = word_details
                 return " ".join(full_text)
             else:
-                print("⚠️ No speech detected in audio")
+                print("WARNING: No speech detected in audio")
                 return None
                     
         except Exception as e:
@@ -349,15 +349,15 @@ class TranscriptionService:
         total_duration = len(audio_data) / sample_rate
         expected_coverage = len(chunks) * chunk_duration
         
-        print(f"🚀 Processing {len(chunks)} chunks in parallel (3min each)")
-        print(f"📊 Total audio: {total_duration:.1f}s")
-        print(f"📊 Chunk coverage: {expected_coverage}s")
+        print(f"Processing {len(chunks)} chunks in parallel (3min each)")
+        print(f"Total audio: {total_duration:.1f}s")
+        print(f"Chunk coverage: {expected_coverage}s")
         
         # Validate coverage
         if expected_coverage < total_duration - 30:  # Missing more than 30s
-            print(f"⚠️ Potential audio loss: {total_duration - expected_coverage:.1f}s may be missing")
+            print(f"WARNING: Potential audio loss: {total_duration - expected_coverage:.1f}s may be missing")
         else:
-            print("✅ Full audio coverage confirmed")
+            print("Full audio coverage confirmed")
         
         # Use parallel processing
         return self._transcribe_chunks_parallel(chunks, language_code)
@@ -415,17 +415,17 @@ class TranscriptionService:
                 results[chunk_index] = transcript
                 
                 completed += 1
-                print(f"✅ {completed}/{len(chunks)} - {time_label}")
+                print(f"Completed {completed}/{len(chunks)} - {time_label}")
         
         # Combine results and validate
         final_transcript = " ".join(filter(None, results))
         
         # Validation
         if len(final_transcript.strip()) < 50:  # Very short transcript
-            print("⚠️ Transcript seems unusually short. Check audio quality.")
+            print("WARNING: Transcript seems unusually short. Check audio quality.")
         
         word_count = len(final_transcript.split())
-        print(f"✅ Final transcript: {word_count} words, {len(final_transcript)} characters")
+        print(f"Final transcript: {word_count} words, {len(final_transcript)} characters")
         
         return final_transcript
     
