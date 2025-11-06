@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 from app import app, socketio
 import os
 
@@ -5,5 +8,5 @@ import os
 application = app
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 8050))
     socketio.run(app, host="0.0.0.0", port=port, debug=False)
