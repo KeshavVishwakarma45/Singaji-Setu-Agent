@@ -510,13 +510,116 @@ def download_file(file_type):
         return jsonify({"error": str(e)}), 500
 
 
-if __name__ == "__main__":
-    # Ensure upload directory exists
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+# WebSocket handlers for live transcription
+@socketio.on('connect')
+def handle_connect():
+    print(f'Client connected: {request.sid}')
+    emit('connected', {'status': 'ready', 'sid': request.sid})
 
-    # Initialize services on startup
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f'Client disconnected: {request.sid}')
+    if app_state.get('live_service'):
+        try:
+            app_state['live_service'].stop_streaming()
+        except:
+            pass
+
+@socketio.on('start_stream')
+def handle_start_stream():
+    try:
+        print('Starting live transcription stream')
+        
+        if not init_services():
+            print('Failed to initialize services')
+            socketio.emit('error', {'message': 'Failed to initialize services'})
+            return
+        
+        app_state['live_transcript'] = ''
+        app_state['live_service'] = LiveTranscriptionService()
+        
+        def on_transcript(text, is_final):
+            if is_final:
+                app_state['live_transcript'] += text + ' '
+                print(f'Final: {text}')
+                socketio.emit('transcript_update', {
+                    'transcript': text,
+                    'is_final': True,
+                    'full_transcript': app_state['live_transcript']
+                })
+            else:
+                socketio.emit('transcript_update', {
+                    'transcript': text,
+                    'is_final': False
+                })
+        
+        app_state['live_service'].start_streaming(on_transcript, language_code='hi-IN')
+        socketio.emit('stream_started', {'status': 'streaming'})
+        
+    except Exception as e:
+        print(f'Error in start_stream: {e}')
+        socketio.emit('error', {'message': f'Failed to start stream: {str(e)}'})
+
+@socketio.on('audio_data')
+def handle_audio_data(data):
+    try:
+        audio_bytes = base64.b64decode(data['audio'])
+        if app_state['live_service']:
+            app_state['live_service'].add_audio_chunk(audio_bytes)
+    except Exception as e:
+        print(f'Streaming error: {e}')
+        socketio.emit('error', {'message': str(e)})
+
+@socketio.on('stop_stream')
+def handle_stop_stream():
+    try:
+        if app_state['live_service']:
+            app_state['live_service'].stop_streaming()
+        
+        transcript = app_state['live_transcript'].strip()
+        if not transcript:
+            socketio.emit('error', {'message': 'No transcript generated'})
+            return
+        
+        app_state['transcript'] = transcript
+        
+        # Save live transcript to GCS
+        try:
+            from datetime import datetime
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'Transcription/live_transcript_{timestamp}.txt'
+            
+            content = f"""Live Transcription:
+Timestamp: {timestamp}
+Language: Hindi (hi-IN)
+
+--- TRANSCRIPT ---
+{transcript}
+--- END TRANSCRIPT ---"""
+            
+            bucket = app_state['transcription_service'].storage_client.bucket(GCS_BUCKET_NAME)
+            blob = bucket.blob(filename)
+            blob.upload_from_string(content.encode('utf-8'), content_type='text/plain; charset=utf-8')
+            print(f'Live transcript saved: {filename}')
+        except Exception as e:
+            print(f'Failed to save live transcript: {e}')
+        
+        # Analyze with Gemini
+        schema = get_default_schema()
+        result = app_state['gemini_service'].generate_json_payload(json.dumps(schema, indent=2), transcript)
+        
+        if result:
+            app_state['gemini_result'] = result
+            socketio.emit('analysis_complete', {'transcript': transcript, 'result': result})
+        else:
+            socketio.emit('error', {'message': 'Analysis failed'})
+            
+    except Exception as e:
+        print(f'Stop stream error: {e}')
+        socketio.emit('error', {'message': str(e)})
+
+if __name__ == "__main__":
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     print("Starting Singaji Setu Agent Backend...")
     init_services()
-
-    # Run the app
     socketio.run(app, host="0.0.0.0", port=8080, debug=True, allow_unsafe_werkzeug=True)
