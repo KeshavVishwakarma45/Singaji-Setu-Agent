@@ -28,7 +28,7 @@ app.config['SECRET_KEY'] = 'singaji-setu-secret'
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, 
     cors_allowed_origins="*", 
-    async_mode='threading', 
+    async_mode='eventlet', 
     logger=False, 
     engineio_logger=False,
     ping_timeout=60,
@@ -456,5 +456,14 @@ def handle_stop_stream():
 
 if __name__ == '__main__':
     os.makedirs('uploads', exist_ok=True)
-    print("🌾 Starting Singaji Setu Agent with Live Streaming")
-    socketio.run(app, debug=False, host='0.0.0.0', port=5000, use_reloader=False, allow_unsafe_werkzeug=True)
+    print("🌾 Starting Singaji Setu Agent with Live Streaming")    
+    # Get port from environment (Railway/Heroku) or default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    
+    socketio.run(app, 
+                debug=False, 
+                host='0.0.0.0', 
+                port=port, 
+                use_reloader=False, 
+                allow_unsafe_werkzeug=True)
+    
