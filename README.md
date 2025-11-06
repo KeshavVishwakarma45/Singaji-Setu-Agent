@@ -162,6 +162,36 @@ Frontend runs on: `http://localhost:3000`
 | `stop_stream` | Client → Server | Stop recording |
 | `analysis_complete` | Server → Client | Analysis results |
 
+## 🚀 Deployment
+
+### Railway (Recommended)
+```bash
+# Backend
+cd backend
+railway init
+railway up
+
+# Frontend
+cd frontend
+npm run build
+# Deploy to Netlify/Vercel
+```
+
+### Heroku
+```bash
+# Backend
+echo "web: python app.py" > Procfile
+git init
+git add .
+git commit -m "Initial commit"
+heroku create your-app-name
+git push heroku main
+
+# Frontend
+npm run build
+# Deploy build folder to hosting service
+```
+
 ## 💰 Cost Estimation
 
 **Google Cloud Services:**
