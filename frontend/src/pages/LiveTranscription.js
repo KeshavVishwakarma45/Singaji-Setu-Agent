@@ -21,14 +21,12 @@ const LiveTranscription = ({ updateSessionData }) => {
       console.log('🔌 Creating socket connection...');
       const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       socketRef.current = io(API_URL, {
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],
         reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionAttempts: 10,
-        timeout: 60000,
-        forceNew: true,
-        upgrade: true,
-        rememberUpgrade: false
+        reconnectionDelay: 2000,
+        reconnectionAttempts: 5,
+        timeout: 20000,
+        forceNew: false
       });
       
       socketRef.current.on('connect', () => {

@@ -622,4 +622,4 @@ if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     print("Starting Singaji Setu Agent Backend...")
     init_services()
-    socketio.run(app, host="0.0.0.0", port=8080, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
