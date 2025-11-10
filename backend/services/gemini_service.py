@@ -20,7 +20,7 @@ class GeminiService:
             print("ERROR: Gemini API key not found. Please set it in your .env file.")
             return None
         try:
-            return ChatGoogleGenerativeAI(model=GEMINI_MODEL, temperature=0.1)
+            return ChatGoogleGenerativeAI(model=GEMINI_MODEL, temperature=0.0)
         except Exception as e:
             print(f"Failed to initialize Gemini model: {e}")
             return None
@@ -42,18 +42,25 @@ class GeminiService:
             parser = JsonOutputParser(pydantic_object=DynamicSchema)
 
             prompt_template = """
-                You are an expert data entry agent specializing in agricultural surveys in India.
-                Your task is to analyze the following interview transcript and populate a JSON object based on the provided schema.
+                You are an expert agricultural data analyst specializing in Indian farmer surveys. 
+                Your task is to carefully analyze the interview transcript and extract accurate information to populate the JSON schema.
 
-                **Instructions:**
-                1.  Read the entire transcript carefully to understand the context of the farmer's interview.
-                2.  Fill in the JSON fields based **only** on the information present in the transcript.
-                3.  If a field from the schema is **not mentioned** in the transcript, you MUST use a `null` value for that field. Do not make up information.
-                4.  If the transcript contains important details that **do not fit** into any of the schema fields, add them to a separate key called `extra_details` as key-value pairs.
-                5.  The `extra_details` should contain all additional information found in the transcript that wasn't covered by the schema.
-                6.  Ensure the final output is a single, valid JSON object.
+                **CRITICAL INSTRUCTIONS:**
+                1. **FILL MAXIMUM FIELDS**: Extract and populate as many fields as possible from the transcript
+                2. **ACCURACY FIRST**: Only extract information that is explicitly mentioned in the transcript
+                3. **CONTEXT AWARENESS**: Understand Hindi/English mixed conversations common in rural India
+                4. **FIELD MAPPING**: Map transcript content to correct schema fields precisely
+                5. **CREATE MULTIPLE ENTRIES**: For arrays, create multiple objects when multiple items are mentioned
 
-                **JSON Schema to follow:**
+                **SPECIFIC GUIDELINES:**
+                - Names: Extract full names as mentioned
+                - Numbers: Convert spoken numbers to digits (e.g., "पांच एकड़" → "5")
+                - Locations: Use proper spelling for villages/districts
+                - Crops: Use standard crop names (wheat, rice, sugarcane, etc.)
+                - Technology: Map to specific tools/apps mentioned
+                - Government schemes: Use official scheme names if mentioned
+
+                **JSON Schema:**
                 ```json
                 {schema}
                 ```
@@ -63,8 +70,9 @@ class GeminiService:
                 {transcript}
                 ```
 
-            **Your JSON Output:**
-            {format_instructions}
+                **IMPORTANT**: Return ONLY the populated JSON object. No explanations or additional text.
+                
+                {format_instructions}
             """
             prompt = ChatPromptTemplate.from_template(
                 template=prompt_template,

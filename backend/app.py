@@ -51,28 +51,258 @@ app_state = {
 
 
 def get_default_schema():
-    """Return default survey schema for farmer interviews"""
+    """Return comprehensive survey schema for farmer interviews"""
     return {
-        "farmer_name": "",
-        "village": "",
-        "district": "",
-        "state": "",
-        "age": "",
-        "gender": "",
-        "education": "",
-        "family_size": "",
-        "land_size_acres": "",
-        "crops_grown": [],
-        "irrigation_method": "",
-        "farming_experience_years": "",
-        "annual_income": "",
-        "challenges_faced": [],
-        "government_schemes_used": [],
-        "technology_adoption": "",
-        "market_access": "",
-        "suggestions": "",
-        "contact_number": "",
+        "farmerDetail": {
+            "name": "",
+            "contact": "",
+            "gender": "",
+            "aadharNumber": "",
+            "farmSize": "",
+            "farmSizeUnit": "",
+            "farmCount": "",
+            "currentLocation": "",
+            "state": "",
+            "typeOfFarmer": "",
+            "partTimeYearsOfExperience": "",
+            "fullTimeYearsOfExperience": "",
+            "familyType": "",
+            "totalFamilyMembers": "",
+            "familyMembersInFarming": "",
+            "familyCaretaker": [],
+            "userId": "",
+            "image": "",
+            "farmExperience": "",
+            "isFormValid": ""
+        },
+        "farmerAdditionalInfo": {
+            "farmerTechnologyAccess": [
+                {
+                    "appName": "",
+                    "toolServiceUsed": [],
+                    "purpose": "",
+                    "source": "",
+                    "govtSubsidy": "",
+                    "socialMedia": [],
+                    "smartphoneOwnership": "",
+                    "ownedBy": "",
+                    "isFormValid": ""
+                }
+            ],
+            "farmerUpdateInformationSources": [
+                {
+                    "sourceType": "",
+                    "sourceName": "",
+                    "usedFor": [],
+                    "frequency": "",
+                    "isFormValid": ""
+                }
+            ],
+            "farmerGovtBenefitsAndLosses": [
+                {
+                    "schemeName": "",
+                    "availed": "",
+                    "amount": "",
+                    "benefitDescription": "",
+                    "issueFaced": "",
+                    "isFormValid": ""
+                }
+            ],
+            "farmerOtherIncomeResources": [
+                {
+                    "sourceType": "",
+                    "description": "",
+                    "monthlyIncome": "",
+                    "isFormValid": ""
+                }
+            ],
+            "farmerStorage": [
+                {
+                    "facilityType": "",
+                    "name": "",
+                    "location": "",
+                    "capacityQuintals": "",
+                    "condition": "",
+                    "govtAccess": "",
+                    "coldStorageUsed": "",
+                    "giveForRent": "",
+                    "givenOnRent": "",
+                    "monthlyEarnings": "",
+                    "image": "",
+                    "isFormValid": ""
+                }
+            ],
+            "isFormValid": ""
+        },
+        "farmerFarmDetails": [
+            {
+                "farmerLandDetails1": [
+                    {
+                        "partNo": "",
+                        "totalLandAcres": "",
+                        "irrigatedAreaAcres": "",
+                        "nonIrrigatedAreaAcres": "",
+                        "soilType": [],
+                        "topography": "",
+                        "cropSuitability": [],
+                        "khotLand": "",
+                        "landType": "",
+                        "typeOfFarm": "",
+                        "khashraSurveyNumber": "",
+                        "measurementUnit": "",
+                        "ownedRented": "",
+                        "location": "",
+                        "distanceFromHomeKm": "",
+                        "ownerType": "",
+                        "isFormValid": ""
+                    }
+                ],
+                "farmerLandDetails2": {
+                    "khotLandCount": "",
+                    "surveyNumber": "",
+                    "ownershipName": "",
+                    "ownedBy": "",
+                    "labourPayoutMethod": "",
+                    "soilImage": "",
+                    "soilReportImage": "",
+                    "soilTestingReportAvailable": "",
+                    "farmPhoto": "",
+                    "farmerPhoto": "",
+                    "irrigationMethod": [],
+                    "kccStatus": "",
+                    "loanStatus": "",
+                    "labourAvailability": "",
+                    "hiredLabourPayment": "",
+                    "farmingApproach": [],
+                    "croppingPattern": [],
+                    "primaryMarket": [],
+                    "harvestingMethod": [],
+                    "farmingType": [],
+                    "isFormValid": ""
+                },
+                "farmerWaterManagement": [
+                    {
+                        "waterSource": [],
+                        "usedFor": [],
+                        "waterRetentionCapacity": "",
+                        "drainageQuality": "",
+                        "storageMethod": "",
+                        "reliability": "",
+                        "linkToLand": [],
+                        "linkToCrops": [],
+                        "is_active": "",
+                        "isFormValid": ""
+                    }
+                ],
+                "farmerCropDetail": [
+                    {
+                        "cultivationArea": "",
+                        "cropName": "",
+                        "season": "",
+                        "changeEveryYear": "",
+                        "cropVariety": "",
+                        "seedSource": [],
+                        "fertilizerUsed": [],
+                        "pesticideUsed": [],
+                        "seedingRate": "",
+                        "seeding_unit": "",
+                        "seedName": "",
+                        "linkToLand": "",
+                        "basicRequirement": "",
+                        "isFormValid": ""
+                    }
+                ],
+                "farmerFertilizer": [
+                    {
+                        "name": "",
+                        "type": "",
+                        "quantity": "",
+                        "price": "",
+                        "brandName": "",
+                        "appliedRate": "",
+                        "appliedStage": "",
+                        "isFormValid": ""
+                    }
+                ],
+                "farmerPesticide": [
+                    {
+                        "name": "",
+                        "type": "",
+                        "quantity": "",
+                        "price": "",
+                        "brandName": "",
+                        "appliedRate": "",
+                        "appliedStage": "",
+                        "isFormValid": ""
+                    }
+                ],
+                "farmerCropSellingDetails": [
+                    {
+                        "crop": "",
+                        "season": "",
+                        "quantity": "",
+                        "rate": "",
+                        "marketRate": "",
+                        "soldTo": "",
+                        "sellingMethod": "",
+                        "directMarket": "",
+                        "isFormValid": ""
+                    }
+                ],
+                "farmerLivestock": [
+                    {
+                        "animalType": "",
+                        "breedName": "",
+                        "quantity": "",
+                        "milkProduction": "",
+                        "insuranceAvailable": "",
+                        "insuranceCompany": "",
+                        "milkSellingPlace": [],
+                        "photo": "",
+                        "isFormValid": ""
+                    }
+                ],
+                "farmerEquipment": [
+                    {
+                        "equipment_type": "",
+                        "brand_name": "",
+                        "owner": "",
+                        "storage_capacity": "",
+                        "storage_unit": "",
+                        "condition": "",
+                        "image": "",
+                        "provide_on_rent": "",
+                        "isFormValid": ""
+                    }
+                ]
+            }
+        ]
     }
+
+
+def _clean_transcript(transcript):
+    """Clean and improve transcript for better analysis"""
+    if not transcript:
+        return transcript
+    
+    # Remove extra spaces and normalize
+    cleaned = ' '.join(transcript.split())
+    
+    # Fix common transcription issues
+    replacements = {
+        ' um ': ' ',
+        ' uh ': ' ',
+        ' er ': ' ',
+        '  ': ' ',
+        ' हाँ ': ' हाँ, ',
+        ' नहीं ': ' नहीं, ',
+        ' अच्छा ': ' अच्छा, '
+    }
+    
+    for old, new in replacements.items():
+        cleaned = cleaned.replace(old, new)
+    
+    return cleaned.strip()
 
 
 def init_services():
@@ -121,7 +351,12 @@ def test_endpoint():
     """Simple test endpoint"""
     try:
         print("Test endpoint called")
-        return jsonify({"success": True, "message": "Test endpoint working"})
+        print(f"Files in request: {list(request.files.keys())}")
+        if "audio" in request.files:
+            file = request.files["audio"]
+            print(f"File received: {file.filename}, Size: {len(file.read())} bytes")
+            return jsonify({"success": True, "message": "File upload working", "filename": file.filename})
+        return jsonify({"success": True, "message": "Test endpoint working, no file"})
     except Exception as e:
         print(f"Test endpoint error: {e}")
         return jsonify({"error": str(e)}), 500
@@ -140,9 +375,7 @@ def test_transcription():
         file = request.files["audio"]
         file_content = file.read()
 
-        print(
-            f"Test transcription - File: {file.filename}, Size: {len(file_content)} bytes"
-        )
+        print(f"Test transcription - File: {file.filename}, Size: {len(file_content)} bytes")
 
         # Create audio buffer
         audio_buffer = BytesIO(file_content)
@@ -153,19 +386,77 @@ def test_transcription():
             audio_buffer, language_code="hi-IN"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "transcript": transcript or "No speech detected",
-                "file_info": {"name": file.filename, "size": len(file_content)},
-            }
-        )
+        return jsonify({
+            "success": True,
+            "transcript": transcript or "No speech detected",
+            "file_info": {"name": file.filename, "size": len(file_content)}
+        })
 
     except Exception as e:
         print(f"Test transcription error: {e}")
         import traceback
-
         traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/debug", methods=["GET"])
+def debug_info():
+    """Get debug information about the system"""
+    try:
+        debug_data = {
+            "services_initialized": {
+                "transcription": app_state["transcription_service"] is not None,
+                "gemini": app_state["gemini_service"] is not None,
+                "speech_client": app_state["transcription_service"].speech_client is not None if app_state["transcription_service"] else False,
+                "storage_client": app_state["transcription_service"].storage_client is not None if app_state["transcription_service"] else False
+            },
+            "environment": {
+                "gcs_bucket": GCS_BUCKET_NAME,
+                "gcp_project": get_gcp_project_id(),
+                "gcp_location": GCP_LOCATION
+            },
+            "dependencies": {
+                "soundfile": True,
+                "numpy": True,
+                "scipy": True
+            }
+        }
+        
+        # Check librosa
+        try:
+            import librosa
+            debug_data["dependencies"]["librosa"] = True
+        except ImportError:
+            debug_data["dependencies"]["librosa"] = False
+        
+        return jsonify(debug_data)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/gemini-transcribe", methods=["POST"])
+def gemini_transcribe():
+    """Fast transcription using Gemini AI (alternative method)"""
+    try:
+        if not init_services():
+            return jsonify({"error": "Service initialization failed"}), 500
+
+        if "audio" not in request.files:
+            return jsonify({"error": "No audio file provided"}), 400
+
+        file = request.files["audio"]
+        if not file.filename:
+            return jsonify({"error": "No file selected"}), 400
+
+        # For now, return a message that this is a placeholder
+        return jsonify({
+            "success": False,
+            "message": "Gemini transcription not yet implemented. Use regular transcription.",
+            "file_info": {"name": file.filename}
+        })
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
@@ -173,15 +464,21 @@ def test_transcription():
 def reset_session():
     """Reset all session data"""
     global app_state
+    # Keep services but reset data
+    services_to_keep = {
+        "transcription_service": app_state.get("transcription_service"),
+        "gemini_service": app_state.get("gemini_service")
+    }
+    
     app_state = {
         "audio_data": None,
         "sample_rate": None,
         "transcript": None,
         "gemini_result": None,
-        "transcription_service": app_state["transcription_service"],
-        "gemini_service": app_state["gemini_service"],
+        "transcription_service": services_to_keep["transcription_service"],
+        "gemini_service": services_to_keep["gemini_service"],
         "live_service": None,
-        "live_transcript": "",
+        "live_transcript": ""
     }
     return jsonify({"success": True, "message": "Session reset"})
 
@@ -192,20 +489,16 @@ def process_audio():
     print("=== Process request received ===")
     try:
         print("Starting process_audio function...")
+        print(f"Request method: {request.method}")
+        print(f"Request files: {list(request.files.keys())}")
+        print(f"Request form: {list(request.form.keys())}")
 
         # Initialize services first
         print("Initializing services...")
         if not init_services():
             print("Service initialization failed")
-            return (
-                jsonify(
-                    {
-                        "error": "Service initialization failed. Check Google Cloud credentials."
-                    }
-                ),
-                500,
-            )
-        print("Services initialized successfully")
+            return jsonify({"error": "Service initialization failed"}), 500
+        print("✅ Services initialized successfully")
 
         print("Checking for audio file in request...")
         if "audio" not in request.files:
@@ -225,150 +518,216 @@ def process_audio():
         if len(file_content) == 0:
             return jsonify({"error": "Empty file uploaded"}), 400
 
+        if len(file_content) < 1000:  # Less than 1KB
+            return jsonify({"error": "File too small - may be corrupted or invalid"}), 400
+
+        # Validate file format
+        file_ext = file.filename.split('.')[-1].lower() if '.' in file.filename else 'unknown'
+        supported_formats = ['wav', 'flac', 'mp3']
+        
+        if file_ext == 'm4a':
+            return jsonify({
+                "error": "M4A format not supported",
+                "details": "Please convert your M4A file to WAV or MP3 format. You can use online converters or audio software."
+            }), 400
+            
+        if file_ext not in supported_formats:
+            return jsonify({
+                "error": f"Unsupported file format: {file_ext}",
+                "details": f"Supported formats: {', '.join(supported_formats)}"
+            }), 400
+
         # Create BytesIO object for transcription
         audio_buffer = BytesIO(file_content)
-        audio_buffer.name = file.filename  # Set filename for format detection
+        audio_buffer.name = file.filename
 
-        # Transcribe directly from buffer
-        print("Starting transcription...")
+        # Transcribe with better error handling
+        print(f"Starting transcription for {file_ext} file...")
         print(f"Audio buffer size: {len(file_content)} bytes")
-        print(
-            f"File extension: {file.filename.split('.')[-1] if '.' in file.filename else 'unknown'}"
-        )
 
         try:
-            transcript = app_state["transcription_service"].transcribe_full_file(
-                audio_buffer, language_code="hi-IN"
-            )
-            print(f"Transcription result: '{transcript}'")
+            # Try Hindi first, then English as fallback
+            transcript = None
+            last_error = None
+            
+            for lang_code in ["hi-IN", "en-US"]:
+                try:
+                    print(f"Attempting transcription with {lang_code}...")
+                    audio_buffer.seek(0)  # Reset buffer position
+                    transcript = app_state["transcription_service"].transcribe_full_file(
+                        audio_buffer, language_code=lang_code
+                    )
+                    if transcript and transcript.strip():
+                        print(f"✅ Transcription successful with {lang_code}: {len(transcript)} characters")
+                        break
+                    else:
+                        print(f"❌ No transcript with {lang_code}, trying next language...")
+                except Exception as lang_error:
+                    print(f"❌ Language {lang_code} failed: {lang_error}")
+                    last_error = lang_error
+                    continue
+            
+            if not transcript or not transcript.strip():
+                error_details = f"Last error: {last_error}" if last_error else "No speech detected"
+                return jsonify({
+                    "error": "Transcription failed",
+                    "details": error_details
+                }), 400
+                
         except Exception as transcription_error:
             print(f"Transcription exception: {transcription_error}")
             import traceback
-
             traceback.print_exc()
-            return (
-                jsonify(
-                    {
-                        "error": f"Transcription service error: {str(transcription_error)}",
-                        "details": "Check server logs for detailed error information",
-                    }
-                ),
-                500,
-            )
+            
+            error_msg = str(transcription_error)
+            if "librosa" in error_msg:
+                return jsonify({
+                    "error": "MP3 format not supported",
+                    "details": "Please convert your MP3 file to WAV format or use a WAV/FLAC file"
+                }), 400
+            elif "credentials" in error_msg.lower():
+                return jsonify({
+                    "error": "Google Cloud credentials issue",
+                    "details": "Please check server configuration"
+                }), 500
+            else:
+                return jsonify({
+                    "error": f"Transcription failed: {error_msg}",
+                    "details": "Please try with a different audio file or format"
+                }), 500
 
-        if not transcript or transcript.strip() == "":
-            return (
-                jsonify(
-                    {
-                        "error": "Transcription failed - no speech detected or audio format not supported",
-                        "details": "Please ensure the audio file contains clear speech and is in a supported format (WAV, FLAC, MP3)",
-                    }
-                ),
-                500,
-            )
-
-        print(f"Transcription successful: {len(transcript)} characters")
-        app_state["transcript"] = transcript
+        # Clean and improve transcript
+        cleaned_transcript = _clean_transcript(transcript)
+        app_state["transcript"] = cleaned_transcript
+        
+        print(f"Original transcript: {len(transcript)} chars")
+        print(f"Cleaned transcript: {len(cleaned_transcript)} chars")
 
         # Save transcription to GCS bucket with metadata
         try:
             from datetime import datetime
-
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"Transcription/transcript_{timestamp}.txt"
 
-            # Create detailed transcription content
             transcription_content = f"""Transcription Details:
 Timestamp: {timestamp}
 File: {file.filename}
-Language: Hindi (hi-IN)
 Size: {len(file_content)} bytes
 
 --- TRANSCRIPT ---
 {transcript}
 --- END TRANSCRIPT ---"""
 
-            bucket = app_state["transcription_service"].storage_client.bucket(
-                GCS_BUCKET_NAME
-            )
+            bucket = app_state["transcription_service"].storage_client.bucket(GCS_BUCKET_NAME)
             blob = bucket.blob(filename)
             blob.upload_from_string(
                 transcription_content.encode("utf-8"),
-                content_type="text/plain; charset=utf-8",
+                content_type="text/plain; charset=utf-8"
             )
             print(f"Transcription saved to GCS: {filename}")
         except Exception as e:
             print(f"Failed to save transcription to GCS: {e}")
 
         # Analyze with Gemini
-        print("Starting AI analysis...")
-        schema = get_default_schema()
-        schema_json = json.dumps(schema, indent=2)
-
-        result = app_state["gemini_service"].generate_json_payload(
-            schema_json, transcript
-        )
-
-        if not result:
-            return jsonify({"error": "AI analysis failed"}), 500
-
-        app_state["gemini_result"] = result
-
-        # Save analysis result to GCS bucket with metadata
+        print("🤖 Starting enhanced AI analysis...")
         try:
-            from datetime import datetime
+            schema = get_default_schema()
+            schema_json = json.dumps(schema, indent=2)
+            
+            print(f"📝 Analyzing transcript: {len(cleaned_transcript)} characters")
+            print(f"🎯 Target schema fields: {len(schema_json.split('""'))} fields")
 
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"Transcription/analysis_{timestamp}.json"
+            result = app_state["gemini_service"].generate_json_payload(schema_json, cleaned_transcript)
 
-            # Add metadata to analysis
-            analysis_with_metadata = {
-                "metadata": {
-                    "timestamp": timestamp,
-                    "original_file": file.filename,
-                    "language": "hi-IN",
-                    "transcript_length": len(transcript),
-                },
-                "transcript": transcript,
-                "analysis": result,
-            }
+            if not result:
+                print("❌ Primary analysis failed, trying simplified extraction...")
+                # Try with simpler prompt
+                result = app_state["gemini_service"]._fallback_extraction(cleaned_transcript, schema_json)
+                
+            if not result:
+                return jsonify({
+                    "error": "AI analysis failed", 
+                    "details": "Could not extract data from transcript. Please check audio quality."
+                }), 500
 
-            bucket = app_state["transcription_service"].storage_client.bucket(
-                GCS_BUCKET_NAME
-            )
-            blob = bucket.blob(filename)
-            blob.upload_from_string(
-                json.dumps(analysis_with_metadata, indent=2, ensure_ascii=False).encode(
-                    "utf-8"
-                ),
-                content_type="application/json; charset=utf-8",
-            )
-            print(f"Analysis result saved to GCS: {filename}")
-        except Exception as e:
-            print(f"Failed to save analysis to GCS: {e}")
+            app_state["gemini_result"] = result
+            print(f"✅ Analysis complete - extracted data for farmer survey")
 
-        print("Process completed successfully!")
+            # Save analysis result to GCS
+            try:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"Transcription/analysis_{timestamp}.json"
 
-        return jsonify({"success": True, "transcript": transcript, "result": result})
+                analysis_with_metadata = {
+                    "metadata": {
+                        "timestamp": timestamp,
+                        "original_file": file.filename,
+                        "transcript_length": len(transcript)
+                    },
+                    "transcript": transcript,
+                    "analysis": result
+                }
+
+                bucket = app_state["transcription_service"].storage_client.bucket(GCS_BUCKET_NAME)
+                blob = bucket.blob(filename)
+                blob.upload_from_string(
+                    json.dumps(analysis_with_metadata, indent=2, ensure_ascii=False).encode("utf-8"),
+                    content_type="application/json; charset=utf-8"
+                )
+                print(f"Analysis result saved to GCS: {filename}")
+            except Exception as e:
+                print(f"Failed to save analysis to GCS: {e}")
+
+            print("🎉 Process completed successfully!")
+            
+            # Validate result quality
+            filled_count = _count_non_empty_fields(result)
+            total_fields = _count_total_fields(get_default_schema())
+            completion_rate = (filled_count / total_fields) * 100 if total_fields > 0 else 0
+            
+            print(f"📊 Data completion: {filled_count}/{total_fields} fields ({completion_rate:.1f}%)")
+            
+            return jsonify({
+                "success": True, 
+                "transcript": cleaned_transcript, 
+                "result": result,
+                "stats": {
+                    "filled_fields": filled_count,
+                    "total_fields": total_fields,
+                    "completion_rate": f"{completion_rate:.1f}%"
+                }
+            })
+            
+        except Exception as analysis_error:
+            print(f"Analysis error: {analysis_error}")
+            return jsonify({
+                "error": f"AI analysis failed: {str(analysis_error)}",
+                "details": "The transcript was generated but AI analysis failed"
+            }), 500
 
     except Exception as e:
         print(f"CRITICAL ERROR in process_audio: {e}")
         print(f"Error type: {type(e).__name__}")
         import traceback
-
         traceback.print_exc()
 
-        # Always return the actual error for debugging
-        return (
-            jsonify(
-                {
-                    "error": f"Server error: {str(e)}",
-                    "error_type": type(e).__name__,
-                    "details": "Check server console for full traceback",
-                }
-            ),
-            500,
-        )
+        error_msg = str(e)
+        if "timeout" in error_msg.lower():
+            return jsonify({
+                "error": "Request timeout",
+                "details": "The file is too large or processing took too long. Try a smaller file."
+            }), 408
+        elif "memory" in error_msg.lower():
+            return jsonify({
+                "error": "Memory error", 
+                "details": "File too large for processing. Please use a smaller audio file."
+            }), 413
+        else:
+            return jsonify({
+                "error": f"Processing failed: {error_msg}",
+                "error_type": type(e).__name__,
+                "details": "Please try again with a different file or check server logs"
+            }), 500
 
 
 @app.route("/api/transcribe", methods=["POST"])
@@ -621,5 +980,12 @@ Language: Hindi (hi-IN)
 if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     print("Starting Singaji Setu Agent Backend...")
-    init_services()
+    print("Initializing services on startup...")
+    
+    if init_services():
+        print("✅ Services initialized successfully")
+    else:
+        print("❌ Service initialization failed - check configuration")
+    
+    print("🚀 Server starting on http://localhost:5000")
     socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)

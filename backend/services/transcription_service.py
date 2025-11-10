@@ -178,83 +178,123 @@ class TranscriptionService:
             return " ".join(full_transcript_parts) if full_transcript_parts else None
 
     def transcribe_full_file(
-        self, uploaded_file, language_code: str = "hi-IN"
+        self, uploaded_file, language_code: str = "hi-IN", encoding: str = None
     ) -> Optional[str]:
         """
         Transcribes a full uploaded file using chunking for large files.
         """
         if not self.speech_client or not self.storage_client:
-            print("Clients not initialized. Cannot transcribe.")
-            return None
+            print("ERROR: Clients not initialized. Cannot transcribe.")
+            raise Exception("Transcription service not properly initialized")
 
         try:
-            # Handle different input types
+            # Handle different input types and formats
+            print(f"Processing audio with language: {language_code}")
+            
+            audio_data = None
+            original_sample_rate = None
+            
             if hasattr(uploaded_file, 'read'):
                 uploaded_file.seek(0)
-                if hasattr(uploaded_file, 'getvalue'):
+                file_content = uploaded_file.read()
+                if len(file_content) == 0:
+                    raise Exception("Empty audio file")
+                
+                uploaded_file.seek(0)
+                # Try soundfile first
+                try:
                     audio_data, original_sample_rate = sf.read(uploaded_file)
-                else:
-                    audio_data, original_sample_rate = sf.read(uploaded_file)
+                    print(f"Loaded with soundfile: {original_sample_rate}Hz")
+                except Exception as sf_error:
+                    print(f"SoundFile failed: {sf_error}")
+                    # Fallback to librosa for MP3 and other formats
+                    try:
+                        import librosa
+                        uploaded_file.seek(0)
+                        audio_data, original_sample_rate = librosa.load(uploaded_file, sr=None)
+                        print(f"Loaded with librosa: {original_sample_rate}Hz")
+                    except ImportError:
+                        raise Exception("MP3 format requires librosa library. Please convert to WAV format.")
+                    except Exception as librosa_error:
+                        raise Exception(f"Unsupported audio format: {librosa_error}")
             else:
+                # Handle bytes input
+                if len(uploaded_file) == 0:
+                    raise Exception("Empty audio data")
+                    
                 source = BytesIO(uploaded_file)
-                audio_data, original_sample_rate = sf.read(source)
+                try:
+                    audio_data, original_sample_rate = sf.read(source)
+                    print(f"Loaded bytes with soundfile: {original_sample_rate}Hz")
+                except Exception:
+                    try:
+                        import librosa
+                        source.seek(0)
+                        audio_data, original_sample_rate = librosa.load(source, sr=None)
+                        print(f"Loaded bytes with librosa: {original_sample_rate}Hz")
+                    except ImportError:
+                        raise Exception("Unsupported audio format. Please use WAV, FLAC, or install librosa for MP3 support.")
+                    except Exception as e:
+                        raise Exception(f"Failed to load audio data: {e}")
+            
+            if audio_data is None or len(audio_data) == 0:
+                raise Exception("No audio data could be extracted from file")
             
             print(f"Original: {len(audio_data)} samples at {original_sample_rate}Hz")
             
             # Convert to mono if stereo
             if len(audio_data.shape) > 1:
                 audio_data = np.mean(audio_data, axis=1)
+                print("Converted stereo to mono")
             
-            # Keep original sample rate to avoid any data loss
-            target_sample_rate = original_sample_rate  # No resampling = no data loss
+            # Validate audio data
+            if np.max(np.abs(audio_data)) == 0:
+                raise Exception("Audio file contains only silence")
             
-            # Optional: Only resample if really needed (very high sample rates)
+            # Keep original sample rate to avoid data loss
+            target_sample_rate = original_sample_rate
+            
+            # Only resample if necessary (very high sample rates)
             if original_sample_rate > 48000:
                 target_sample_rate = 16000
                 try:
                     from scipy import signal
-                    # Use scipy for proper resampling
                     num_samples = int(len(audio_data) * target_sample_rate / original_sample_rate)
                     audio_data = signal.resample(audio_data, num_samples)
-                    print(f"Resampled: {original_sample_rate}Hz -> {target_sample_rate}Hz (SciPy)")
+                    print(f"Resampled: {original_sample_rate}Hz -> {target_sample_rate}Hz")
                 except ImportError:
-                    # Fallback: keep original rate to avoid data loss
                     target_sample_rate = original_sample_rate
-                    print(f"Keeping original sample rate: {original_sample_rate}Hz (no SciPy)")
-            else:
-                print(f"Using original sample rate: {original_sample_rate}Hz (optimal)")
+                    print(f"Keeping original sample rate: {original_sample_rate}Hz")
             
-            # Normalize audio levels for better transcription
-            audio_data = audio_data / np.max(np.abs(audio_data)) * 0.8
+            # Normalize audio levels
+            max_val = np.max(np.abs(audio_data))
+            if max_val > 0:
+                audio_data = audio_data / max_val * 0.8
             
-            # Apply noise reduction (simple)
+            # Apply simple noise reduction
             audio_data = self._simple_noise_reduction(audio_data)
             
             # Calculate duration
             duration_seconds = len(audio_data) / target_sample_rate
-            
             print(f"Audio duration: {duration_seconds:.1f} seconds")
-            print(f"Audio samples: {len(audio_data):,} at {target_sample_rate}Hz")
             
-            # Validate audio quality
-            if duration_seconds < 10:
-                print("WARNING: Very short audio detected. Check if file uploaded correctly.")
-            elif duration_seconds > 3600:  # More than 1 hour
-                print("WARNING: Very long audio (>1 hour). Processing may take significant time.")
-            else:
-                print(f"Audio duration looks good: {duration_seconds/60:.1f} minutes")
+            # Validate duration
+            if duration_seconds < 1:
+                raise Exception("Audio too short (less than 1 second)")
+            elif duration_seconds > 3600:
+                raise Exception("Audio too long (more than 1 hour). Please use a shorter file.")
             
-            # If audio is longer than 3 minutes, use chunking (reduced threshold)
+            # Choose processing method based on duration
             if duration_seconds > 180:  # 3 minutes
-                print("Large file detected - using chunking approach")
+                print("Using chunked processing for large file")
                 return self._transcribe_large_file_chunked(audio_data, target_sample_rate, language_code)
-            
-            # For smaller files, process normally but with timeout handling
-            return self._transcribe_small_file(audio_data, target_sample_rate, language_code)
+            else:
+                print("Using direct processing for small file")
+                return self._transcribe_small_file(audio_data, target_sample_rate, language_code)
             
         except Exception as e:
-            print(f"Failed to process file: {e}")
-            return None
+            print(f"Transcription failed: {e}")
+            raise e  # Re-raise to let caller handle the error
 
     def _transcribe_small_file(self, audio_data, sample_rate, language_code):
         """Transcribe smaller files directly with word-level timestamps."""
@@ -270,15 +310,20 @@ class TranscriptionService:
             if not gcs_uri:
                 return None
             
-            # Configure transcription with word-level timestamps
+            # Configure transcription with enhanced settings for better accuracy
             config = speech.RecognitionConfig(
                 language_code=language_code,
                 enable_automatic_punctuation=True,
-                enable_word_time_offsets=True,  # Enable word timestamps
-                model="telephony",
+                enable_word_time_offsets=True,
+                model="latest_long",  # Better model for accuracy
                 encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
                 sample_rate_hertz=int(sample_rate),
                 audio_channel_count=1,
+                use_enhanced=True,  # Enhanced model for better accuracy
+                enable_speaker_diarization=True,  # Identify different speakers
+                diarization_speaker_count=2,  # Assume interviewer + farmer
+                profanity_filter=False,
+                enable_word_confidence=True  # Get confidence scores
             )
             
             audio = speech.RecognitionAudio(uri=gcs_uri)
