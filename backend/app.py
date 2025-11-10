@@ -435,6 +435,49 @@ def debug_info():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/test-live", methods=["POST"])
+def test_live_transcription():
+    """Test live transcription service directly"""
+    try:
+        print("🧪 Testing live transcription service...")
+        
+        if not init_services():
+            return jsonify({"error": "Service initialization failed"}), 500
+        
+        # Test creating live service
+        live_service = LiveTranscriptionService()
+        
+        # Test callback
+        test_results = []
+        def test_callback(text, is_final):
+            test_results.append({"text": text, "is_final": is_final})
+            print(f"Test callback: {text} (final: {is_final})")
+        
+        # Try to start streaming (will fail without audio but tests setup)
+        try:
+            live_service.start_streaming(test_callback, language_code='hi-IN')
+            time.sleep(1)
+            live_service.stop_streaming()
+            
+            return jsonify({
+                "success": True,
+                "message": "Live transcription service test completed",
+                "results": test_results
+            })
+        except Exception as stream_error:
+            return jsonify({
+                "success": False,
+                "error": str(stream_error),
+                "message": "Live service created but streaming failed (expected without audio)"
+            })
+        
+    except Exception as e:
+        print(f"Live test error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/gemini-transcribe", methods=["POST"])
 def gemini_transcribe():
     """Fast transcription using Gemini AI (alternative method)"""
@@ -887,58 +930,108 @@ def handle_disconnect():
 @socketio.on('start_stream')
 def handle_start_stream():
     try:
-        print('Starting live transcription stream')
+        print('🎙️ Starting live transcription stream...')
         
-        if not init_services():
-            print('Failed to initialize services')
-            socketio.emit('error', {'message': 'Failed to initialize services'})
-            return
+        # Clean up any existing service first
+        if app_state.get('live_service'):
+            try:
+                app_state['live_service'].stop_streaming()
+            except:
+                pass
+            app_state['live_service'] = None
         
+        # Initialize services with retry
+        retry_count = 0
+        max_retries = 3
+        
+        while retry_count < max_retries:
+            try:
+                if init_services():
+                    break
+                retry_count += 1
+                print(f'Service init retry {retry_count}/{max_retries}')
+                time.sleep(1)
+            except Exception as init_error:
+                print(f'Init error attempt {retry_count}: {init_error}')
+                retry_count += 1
+                if retry_count >= max_retries:
+                    socketio.emit('error', {'message': 'Service initialization failed after retries'})
+                    return
+        
+        # Reset transcript
         app_state['live_transcript'] = ''
+        
+        # Create new service
         app_state['live_service'] = LiveTranscriptionService()
         
         def on_transcript(text, is_final):
-            if is_final:
-                app_state['live_transcript'] += text + ' '
-                print(f'Final: {text}')
-                socketio.emit('transcript_update', {
-                    'transcript': text,
-                    'is_final': True,
-                    'full_transcript': app_state['live_transcript']
-                })
-            else:
-                socketio.emit('transcript_update', {
-                    'transcript': text,
-                    'is_final': False
-                })
+            try:
+                if text and text.strip():
+                    if is_final:
+                        app_state['live_transcript'] += text + ' '
+                        print(f'✅ Final: {text}')
+                    else:
+                        print(f'⏳ Interim: {text[:50]}...')
+                    
+                    # Always send updates to frontend
+                    socketio.emit('transcript_update', {
+                        'transcript': text,
+                        'is_final': is_final,
+                        'full_transcript': app_state['live_transcript'] if is_final else app_state['live_transcript'] + text
+                    })
+            except Exception as callback_error:
+                print(f'Callback error: {callback_error}')
         
+        # Start streaming with error handling
         app_state['live_service'].start_streaming(on_transcript, language_code='hi-IN')
+        
+        # Confirm start
         socketio.emit('stream_started', {'status': 'streaming'})
+        print('✅ Live stream started successfully')
         
     except Exception as e:
-        print(f'Error in start_stream: {e}')
-        socketio.emit('error', {'message': f'Failed to start stream: {str(e)}'})
+        print(f'❌ Error in start_stream: {e}')
+        import traceback
+        traceback.print_exc()
+        
+        # Clean up on error
+        if app_state.get('live_service'):
+            try:
+                app_state['live_service'].stop_streaming()
+            except:
+                pass
+            app_state['live_service'] = None
+        
+        socketio.emit('error', {'message': f'Failed to start recording: {str(e)}'})
 
 @socketio.on('audio_data')
 def handle_audio_data(data):
     try:
+        if not app_state.get('live_service'):
+            return
+            
         audio_bytes = base64.b64decode(data['audio'])
-        if app_state['live_service']:
+        if len(audio_bytes) > 0:
             app_state['live_service'].add_audio_chunk(audio_bytes)
     except Exception as e:
-        print(f'Streaming error: {e}')
-        socketio.emit('error', {'message': str(e)})
+        print(f'❌ Audio data error: {e}')
+        # Don't emit error for audio data issues to avoid spam
 
 @socketio.on('stop_stream')
 def handle_stop_stream():
     try:
+        # Stop streaming immediately
         if app_state['live_service']:
             app_state['live_service'].stop_streaming()
+            app_state['live_service'] = None
         
         transcript = app_state['live_transcript'].strip()
+        
+        # Don't check minimum length for live transcription
+        # Just save whatever we got
         if not transcript:
-            socketio.emit('error', {'message': 'No transcript generated'})
-            return
+            transcript = "[No speech detected during recording]"
+            print(f'⚠️ No transcript captured, using placeholder')
         
         app_state['transcript'] = transcript
         

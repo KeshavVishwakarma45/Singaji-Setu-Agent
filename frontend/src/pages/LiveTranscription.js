@@ -39,15 +39,27 @@ const LiveTranscription = ({ updateSessionData }) => {
       });
 
       socketRef.current.on('stream_started', () => {
-        console.log('🎙️ Stream started');
+        console.log('🎙️ Backend stream ready');
+      });
+      
+      socketRef.current.on('connect_error', (error) => {
+        console.error('❌ Connection error:', error);
+        setError('Connection failed. Please check if backend is running.');
+      });
+      
+      socketRef.current.on('reconnect_failed', () => {
+        setError('Failed to reconnect. Please refresh the page.');
       });
 
       socketRef.current.on('transcript_update', (data) => {
+        console.log('📝 Transcript update:', data);
         if (data.is_final) {
           setTranscript(data.full_transcript);
           setInterimTranscript('');
+          console.log('✅ Final transcript updated:', data.full_transcript.length, 'chars');
         } else {
           setInterimTranscript(data.transcript);
+          console.log('⏳ Interim transcript:', data.transcript.substring(0, 50));
         }
       });
 
@@ -101,64 +113,102 @@ const LiveTranscription = ({ updateSessionData }) => {
 
   const startRecording = async () => {
     try {
-      // Get microphone access
+      setError(null);
+      
+      // Check socket connection first
+      if (!socketRef.current || !socketRef.current.connected) {
+        setError('Connection lost. Reconnecting...');
+        return;
+      }
+      
+      console.log('🎙️ Starting recording...');
+      
+      // Get microphone access with better constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           channelCount: 1,
-          sampleRate: 16000
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true
         } 
       });
       
       streamRef.current = stream;
       
-      // Create MediaRecorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm'
-      });
+      // Create MediaRecorder with fallback
+      let mimeType = 'audio/webm';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/wav';
+      }
       
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       
-      // Start streaming to backend
-      socketRef.current.emit('start_stream');
-      
+      // Set up data handler first
+      let chunkCount = 0;
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          // Convert to base64 and send
+        if (event.data.size > 0 && socketRef.current && socketRef.current.connected) {
+          chunkCount++;
+          if (chunkCount % 20 === 0) {
+            console.log(`🎧 Sent ${chunkCount} audio chunks, latest size: ${event.data.size} bytes`);
+          }
+          
           const reader = new FileReader();
           reader.onloadend = () => {
-            const base64 = reader.result.split(',')[1];
-            socketRef.current.emit('audio_data', { audio: base64 });
+            try {
+              const base64 = reader.result.split(',')[1];
+              socketRef.current.emit('audio_data', { audio: base64 });
+            } catch (e) {
+              console.error('Audio send error:', e);
+            }
           };
           reader.readAsDataURL(event.data);
         }
       };
       
-      // Send audio chunks every 250ms
-      mediaRecorder.start(250);
+      // Start backend streaming first
+      socketRef.current.emit('start_stream');
       
-      setIsRecording(true);
-      setTranscript('');
-      setInterimTranscript('');
-      setError(null);
+      // Wait a moment then start recording
+      setTimeout(() => {
+        if (mediaRecorder.state === 'inactive') {
+          mediaRecorder.start(100);
+          setIsRecording(true);
+          setTranscript('');
+          setInterimTranscript('');
+          console.log('✅ Recording started successfully');
+        }
+      }, 500);
       
     } catch (err) {
-      setError('Microphone error: ' + err.message);
+      console.error('Recording start error:', err);
+      if (err.name === 'NotAllowedError') {
+        setError('Microphone permission denied. Please allow microphone access.');
+      } else if (err.name === 'NotFoundError') {
+        setError('No microphone found. Please connect a microphone.');
+      } else {
+        setError('Recording failed: ' + err.message);
+      }
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
+      // Stop immediately
+      setIsRecording(false);
+      
+      // Stop media recorder
       mediaRecorderRef.current.stop();
       
+      // Stop all audio tracks immediately
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
       
-      setIsRecording(false);
-      setAnalyzing(true);
-      
-      // Tell backend to stop and analyze
+      // Tell backend to stop immediately
       socketRef.current.emit('stop_stream');
+      
+      setAnalyzing(true);
     }
   };
 
@@ -222,7 +272,7 @@ const LiveTranscription = ({ updateSessionData }) => {
 
 
 
-      <style jsx>{`
+      <style>{`
         .live-transcription {
           max-width: 900px;
           margin: 0 auto;
