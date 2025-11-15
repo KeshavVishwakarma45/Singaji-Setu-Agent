@@ -295,9 +295,12 @@ const LiveTranscription = ({ updateSessionData }) => {
           min-height: 400px;
           max-height: 600px;
           overflow-y: auto;
+          overflow-x: hidden;
           font-size: 1.2em;
           line-height: 1.8;
           box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          word-wrap: break-word;
+          white-space: pre-wrap;
         }
 
         .placeholder-text {
@@ -310,12 +313,16 @@ const LiveTranscription = ({ updateSessionData }) => {
         .final-text {
           color: #1f2937;
           margin: 0;
+          word-wrap: break-word;
+          white-space: pre-wrap;
         }
 
         .interim-text {
           color: #6b7280;
           font-style: italic;
           margin: 0;
+          word-wrap: break-word;
+          white-space: pre-wrap;
         }
 
         .stats {
