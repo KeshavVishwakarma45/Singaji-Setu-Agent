@@ -70,5 +70,5 @@ temp_*
 Thumbs.db
 
 # Package locks (optional - remove if you want to commit them)
-# package-lock.json
+package-lock.json
 yarn.lock
