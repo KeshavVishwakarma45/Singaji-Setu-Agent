@@ -35,7 +35,9 @@ ENV/
 
 # Google Cloud Credentials
 service-account-key.json
-*.json
+!vercel.json
+!package.json
+!package-lock.json
 
 # Node.js
 node_modules/

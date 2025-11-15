@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -620,6 +623,8 @@ Language: Hindi (hi-IN)
 
 if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    print("Starting Singaji Setu Agent Backend...")
+    port = int(os.environ.get("PORT", 8080))
+    print(f"Environment PORT: {os.environ.get('PORT', 'Not set')}")
+    print(f"Starting Singaji Setu Agent Backend on port {port}...")
     init_services()
     socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
